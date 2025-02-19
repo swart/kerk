@@ -2,9 +2,9 @@
  * Shuffles an array using the Fisher-Yates algorithm.
  * Modified version of https://bost.ocks.org/mike/shuffle to include a seed.
  */
-export function shuffle(array: string[], seed: number): string[] {
+export function shuffle<T>(array: T[], seed: number): T[] {
     let remainingElements = array.length;
-    let swappedElement: string;
+    let swappedElement: T;
     let randomElement: number;
 
     while (remainingElements) {

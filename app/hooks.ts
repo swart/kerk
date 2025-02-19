@@ -3,7 +3,7 @@ import { useEffect } from "react";
 export function useScrollEnd(callback: () => void) {
     useEffect(() => {
         const handleScroll = () => {
-            if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+            if (window.innerHeight + window.scrollY + 50 >= document.body.offsetHeight) {
                 callback();
             }
         };
