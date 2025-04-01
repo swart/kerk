@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { formatDate, nearestSunday, shuffle } from "./functions";
+import { useState, Fragment } from "react";
+import { formatDate, nearestSunday, numberOfSundaysBetweenDates, shuffle } from "./functions";
 import { useScrollEnd } from "./hooks";
 import { env } from "./env";
 
@@ -9,27 +9,16 @@ const dateOrigin = env.dateOrigin;
 const seed = env.seed;
 const diakens = env.diakens;
 const shuffledDiakens = shuffle<string>(diakens, seed);
-
-function sundaysFromOriginUntilNow() {
-    const today = new Date();
-    const nearestSundayFromOrigin = nearestSunday(dateOrigin);
-
-    const diffTime = Math.abs(
-        today.getTime() - nearestSundayFromOrigin.getTime()
-    );
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    return Math.floor(diffDays / 7);
-}
+const numberOfSundaysFromOrigin = numberOfSundaysBetweenDates(dateOrigin) - 1; // remove -1
 
 function getNextDiakenName(sundayIndex: number, diakenIndex: number) {
-    const values = [0, 1, 2, 3];
-    const shuffledValues = shuffle<number>(values, seed + sundayIndex);
-    const shuffledIndex = shuffledValues[diakenIndex];
+    const numberOfSundays = numberOfSundaysFromOrigin + sundayIndex;
+    const defaultIndices = [0, 1, 2, 3];
+    const shuffledIndices = shuffle<number>(defaultIndices, seed + numberOfSundays); // new seed based on original seed and number of offset sundays
+    const shuffledIndex = shuffledIndices[diakenIndex];
     
     return shuffledDiakens[
-        ((sundayIndex + sundaysFromOriginUntilNow()) * 4 + shuffledIndex) %
-            shuffledDiakens.length
+        (numberOfSundays * 4 + shuffledIndex) % shuffledDiakens.length
     ];
 }
 
@@ -54,31 +43,23 @@ export default function Home() {
                         date.setDate(date.getDate() + sundayIndex * 7);
 
                         return (
-                            <>
+                            <Fragment key={`sunday-${sundayIndex}`}>
                                 <hr className="w-full border-t dark:border-white/[.1] my-8" />
 
-                                <div
-                                    key={`sunday-${sundayIndex}`}
-                                    className="flex items-center gap-2 pb-6 sm:pb-8 text-2xl sm:text-3xl font-semibold"
-                                >
+                                <div className="flex items-center gap-2 pb-6 sm:pb-8 text-2xl sm:text-3xl font-semibold">
                                     {formatDate(date)}
                                 </div>
 
                                 {Array.from({ length: 4 }, (_, diakenIndex) => (
                                     <div
-                                        key={`diaken-${diakenIndex}`}
+                                        key={`diaken-${sundayIndex}-${diakenIndex}-`}
                                         className="flex items-center gap-2 text-1xl sm:text-2xl"
                                     >
                                         <span>{diakenIndex + 1}.</span>
-                                        <span>
-                                            {getNextDiakenName(
-                                                sundayIndex,
-                                                diakenIndex
-                                            )}
-                                        </span>
+                                        <span>{getNextDiakenName(sundayIndex, diakenIndex)}</span>
                                     </div>
                                 ))}
-                            </>
+                            </Fragment>
                         );
                     }
                 )}

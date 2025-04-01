@@ -30,24 +30,29 @@ export function random(seed: number): number {
 }
 
 export function nearestSunday(date: Date = new Date()): Date {
-    const day = date.getDay();
+    const sunday = new Date(date);
+    const day = sunday.getDay();
 
-    if (day === 0) return date;
+    if (day === 0) return sunday;
 
     const daysUntilSunday = 7 - day;
 
-    date.setDate(date.getDate() + daysUntilSunday);
+    sunday.setDate(sunday.getDate() + daysUntilSunday);
 
-    return date;
+    return sunday;
 }
 
-export function nextSunday(date: Date = new Date()): Date {
-    const day = date.getDay();
-    const daysUntilSunday = 7 - day;
+export function numberOfSundaysBetweenDates(startDate: Date, endDate: Date = new Date()): number {
+    const start = nearestSunday(startDate);
+    const end = nearestSunday(endDate);
+    let sundaysCount = 0;
 
-    date.setDate(date.getDate() + daysUntilSunday);
+    while (start < end) {
+        sundaysCount++;
+        start.setDate(start.getDate() + 7);
+    }
 
-    return date;
+    return sundaysCount;
 }
 
 export function formatDate(date: Date): string {
