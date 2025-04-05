@@ -1,33 +1,17 @@
 "use client";
 import { useState, Fragment } from "react";
-import { formatDate, nearestSunday, numberOfSundaysBetweenDates, shuffle } from "./functions";
+import { formatDate, getNextDiakenName, nearestSunday, numberOfSundaysBetweenDates, shuffle } from "./functions";
 import { useScrollEnd } from "./hooks";
 import { env } from "./env";
 
-const numberOfSundays = env.numberOfSundays;
-const dateOrigin = env.dateOrigin;
-const seed = env.seed;
-const diakens = env.diakens;
-const shuffledDiakens = shuffle<string>(diakens, seed);
-const numberOfSundaysFromOrigin = numberOfSundaysBetweenDates(dateOrigin) - 1; // remove -1
-
-function getNextDiakenName(sundayIndex: number, diakenIndex: number) {
-    const numberOfSundays = numberOfSundaysFromOrigin + sundayIndex;
-    const defaultIndices = [0, 1, 2, 3];
-    const shuffledIndices = shuffle<number>(defaultIndices, seed + numberOfSundays); // new seed based on original seed and number of offset sundays
-    const shuffledIndex = shuffledIndices[diakenIndex];
-    
-    return shuffledDiakens[
-        (numberOfSundays * 4 + shuffledIndex) % shuffledDiakens.length
-    ];
-}
-
 export default function Home() {
-    const [numberOfSundaysToRender, setNumberOfSundaysToRender] = useState<number>(numberOfSundays);
+    const [numberOfSundaysToRender, setNumberOfSundaysToRender] = useState<number>(env.numberOfSundays);
+    const [numberOfSundaysFromOrigin] = useState(numberOfSundaysBetweenDates(env.dateOrigin) - 1); // TODO: remove -1, temporarily shifted everything by 1.
+    const [shuffledDiakens] = useState(shuffle<string>(env.diakens, env.seed));
 
     useScrollEnd(() => {
         setNumberOfSundaysToRender(
-            (previousValue) => previousValue + numberOfSundays
+            (previousValue) => previousValue + env.numberOfSundays
         );
     });
 
@@ -56,7 +40,7 @@ export default function Home() {
                                         className="flex items-center gap-2 text-1xl sm:text-2xl"
                                     >
                                         <span>{diakenIndex + 1}.</span>
-                                        <span>{getNextDiakenName(sundayIndex, diakenIndex)}</span>
+                                        <span>{getNextDiakenName(sundayIndex, diakenIndex, numberOfSundaysFromOrigin, shuffledDiakens)}</span>
                                     </div>
                                 ))}
                             </Fragment>

@@ -1,21 +1,24 @@
+import { env } from "./env";
+
 /**
  * Shuffles an array using the Fisher-Yates algorithm.
  * Modified version of https://bost.ocks.org/mike/shuffle to include a seed.
  */
 export function shuffle<T>(array: T[], seed: number): T[] {
-    let remainingElements = array.length;
+    const tempArray = [...array];
+    let remainingElements = tempArray.length;
     let swappedElement: T;
     let randomElement: number;
 
     while (remainingElements) {
         randomElement = Math.floor(random(seed) * remainingElements--);
-        swappedElement = array[remainingElements];
-        array[remainingElements] = array[randomElement];
-        array[randomElement] = swappedElement;
+        swappedElement = tempArray[remainingElements];
+        tempArray[remainingElements] = tempArray[randomElement];
+        tempArray[randomElement] = swappedElement;
         ++seed;
     }
 
-    return array;
+    return tempArray;
 }
 
 /**
@@ -29,7 +32,7 @@ export function random(seed: number): number {
     return x - Math.floor(x);
 }
 
-export function nearestSunday(date: Date = new Date()): Date {
+export function nearestSunday(date: Date = today()): Date {
     const sunday = new Date(date);
     const day = sunday.getDay();
 
@@ -42,7 +45,7 @@ export function nearestSunday(date: Date = new Date()): Date {
     return sunday;
 }
 
-export function numberOfSundaysBetweenDates(startDate: Date, endDate: Date = new Date()): number {
+export function numberOfSundaysBetweenDates(startDate: Date, endDate: Date = today()): number {
     const start = nearestSunday(startDate);
     const end = nearestSunday(endDate);
     let sundaysCount = 0;
@@ -61,4 +64,19 @@ export function formatDate(date: Date): string {
         month: 'long',
         year: 'numeric'
     });
+}
+
+export function getNextDiakenName(sundayIndex: number, diakenIndex: number, numberOfSundays: number, shuffledDiakens: string[]): string {
+    const offsetSundays = numberOfSundays + sundayIndex;
+    const defaultIndices = [0, 1, 2, 3];
+    const shuffledIndices = shuffle<number>(defaultIndices, env.seed + env.numberOfSundays); // new env.seed based on original env.seed and number of offset sundays
+    const shuffledIndex = shuffledIndices[diakenIndex];
+    
+    return shuffledDiakens[
+        (offsetSundays * 4 + shuffledIndex) % shuffledDiakens.length
+    ];
+}
+
+export function today(): Date {
+    return new Date(new Date().setHours(0,0,0,0));
 }
